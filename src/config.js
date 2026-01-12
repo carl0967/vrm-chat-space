@@ -132,7 +132,7 @@ function loadCharacterSettings() {
       model_uuid: localStorage.getItem("vrm_chat_aivis_tts_model_uuid") || DEFAULT_AIVIS_TTS_MODEL_UUID,
     },
   };
- 
+} 
 
 /**
  * キャラクター設定をlocalStorageに保存する。
@@ -151,7 +151,7 @@ export function saveCharacterSettings(settings) {
  * キャラクター設定のデフォルト値を取得する。
  * @returns {Object} デフォルト設定
  */
- xport function getDefaultCharacterSettings() {
+export function getDefaultCharacterSettings() {
   return {
     aiName: DEFAULT_AI_NAME,
     systemPrompt: DEFAULT_AI_CHARACTER_SYSTEM_PROMPT,
@@ -164,7 +164,7 @@ export function saveCharacterSettings(settings) {
       model_uuid: DEFAULT_AIVIS_TTS_MODEL_UUID,
     },
   };
- 
+} 
 
 // localStorageから設定を読み込む
 const characterSettings = loadCharacterSettings();
@@ -199,8 +199,7 @@ export const AIVIS_TTS_CONFIG = {
 /**
  * AIキャラクターのシステムプロンプト設定
  */
- xport const AI_CHARACTER_SYSTEM_PROMPT = characterSettings.systemPrompt;
- 
+export const AI_CHARACTER_SYSTEM_PROMPT = characterSettings.systemPrompt; 
 /**
  * アクションメニューの定義
  * 各アクションの表示設定と説明を管理する。

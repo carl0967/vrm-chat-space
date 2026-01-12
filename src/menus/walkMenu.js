@@ -2,8 +2,9 @@
 // NOTE: このモジュールはDOM要素に依存しません。純粋な歩行ロジックを提供します。
 import * as THREE from "three";
 import { logMessage } from "../utils/logger.js";
+import { getAnimationFileByLabel } from "../vrma/loader.js";
 
-const WALK_ANIMATION_FILE = "motion003.vrmapack";
+let WALK_ANIMATION_FILE = null;
 const TURN_THRESHOLD = THREE.MathUtils.degToRad(120);
 const TURN_MIN_DURATION = 0.35;
 const TURN_MAX_DURATION = 0.8;
@@ -18,6 +19,7 @@ export function createWalkMenu({
   vrmManager,
   getAnimationClip,
   AnimationBlend,
+  vrmaBasePath,
 }) {
   const walkState = {
     loading: false,
@@ -188,6 +190,14 @@ export function createWalkMenu({
     }
 
     try {
+      // manifest.jsonから歩行アニメーションファイル名を取得
+      if (!WALK_ANIMATION_FILE) {
+        WALK_ANIMATION_FILE = await getAnimationFileByLabel("Walk", vrmaBasePath);
+        if (!WALK_ANIMATION_FILE) {
+          throw new Error("manifest.jsonに'Walk'ラベルのアニメーションが見つかりません");
+        }
+      }
+
       const clip = await getAnimationClip(WALK_ANIMATION_FILE);
       if (!clip) {
         throw new Error("Walk アニメーションが読み込めませんでした");

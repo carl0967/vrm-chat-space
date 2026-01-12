@@ -1,11 +1,47 @@
-// 待機アニメーションメニューとランダム挙動で共通利用する長尺 Idle の並び
-const LONG_IDLE_SEQUENCE = Object.freeze(["Idle2.vrma", "Idle2_2.vrma"]);
+import { getAnimationFileByLabel } from "./vrma/loader.js";
 
-// ランダム移動中の待機フェーズでも待機メニューと同じ長尺 Idle を再生する
-export const RANDOM_IDLE_FILES = LONG_IDLE_SEQUENCE;
+// 待機アニメーションファイルのキャッシュ
+let idleFilesCache = null;
 
-// 待機アニメーションメニュー用。ランダムモードと完全一致させる
-export const IDLE_TEST_LOOP_FILES = LONG_IDLE_SEQUENCE;
+/**
+ * manifest.jsonから待機アニメーションファイルを取得する。
+ * @param {string} vrmaBasePath - VRMAファイルのベースパス
+ * @returns {Promise<string[]>} 待機アニメーションファイルの配列
+ */
+async function loadIdleFiles(vrmaBasePath) {
+  if (idleFilesCache) {
+    return idleFilesCache;
+  }
+
+  const idle2Long = await getAnimationFileByLabel("Idle2 long", vrmaBasePath);
+  const idle2LongAlt = await getAnimationFileByLabel("Idle2 long alt", vrmaBasePath);
+
+  idleFilesCache = [idle2Long, idle2LongAlt].filter(file => file != null);
+
+  if (idleFilesCache.length === 0) {
+    throw new Error("manifest.jsonに待機アニメーションが見つかりません");
+  }
+
+  return idleFilesCache;
+}
+
+/**
+ * ランダム移動中の待機フェーズでも待機メニューと同じ長尺 Idle を再生する。
+ * @param {string} vrmaBasePath - VRMAファイルのベースパス
+ * @returns {Promise<string[]>} ランダムモード用の待機アニメーションファイルの配列
+ */
+export async function getRandomIdleFiles(vrmaBasePath) {
+  return loadIdleFiles(vrmaBasePath);
+}
+
+/**
+ * 待機アニメーションメニュー用。ランダムモードと完全一致させる。
+ * @param {string} vrmaBasePath - VRMAファイルのベースパス
+ * @returns {Promise<string[]>} 待機アニメーションファイルの配列
+ */
+export async function getIdleTestLoopFiles(vrmaBasePath) {
+  return loadIdleFiles(vrmaBasePath);
+}
 
 // Idle 切り替え時に確保するクロスフェード重なり秒数
 export const IDLE_OVERLAP_SECONDS = 0.5;

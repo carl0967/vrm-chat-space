@@ -24,6 +24,7 @@ export function createActionMenu({
   actionStatusElement,
   getAnimationClip,
   AnimationBlend,
+  vrmaBasePath,
 }) {
   const ENABLE_ACTION_MENU_LOG = false; // デバッグ時にtrueにすると詳細ログが出力される
 
@@ -91,6 +92,7 @@ export function createActionMenu({
     getAnimationClip,
     AnimationBlend,
     finishActionAndReturnToIdle,
+    vrmaBasePath,
   });
 
   const comeHereAction = createComeHereAction({

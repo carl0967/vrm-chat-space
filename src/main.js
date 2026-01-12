@@ -229,6 +229,7 @@ const walkMenu = createWalkMenu({
   vrmManager,
   getAnimationClip,
   AnimationBlend,
+  vrmaBasePath: VRMA_BASE_PATH,
 });
 
 const randomMenu = createRandomMenu({
@@ -236,6 +237,7 @@ const randomMenu = createRandomMenu({
   walkMenu,
   getAnimationClip,
   AnimationBlend,
+  vrmaBasePath: VRMA_BASE_PATH,
 });
 
 const idleLoopMenu = createIdleLoopMenu({
@@ -243,6 +245,7 @@ const idleLoopMenu = createIdleLoopMenu({
   walkMenu,
   getAnimationClip,
   AnimationBlend,
+  vrmaBasePath: VRMA_BASE_PATH,
 });
 
 const lookAtPlayerMenu = createLookAtPlayerMenu({
@@ -262,6 +265,7 @@ const actionMenu = createActionMenu({
   actionStatusElement: actionStatus,
   getAnimationClip,
   AnimationBlend,
+  vrmaBasePath: VRMA_BASE_PATH,
 });
 
 // VrButtonOverlayにactionMenuを設定

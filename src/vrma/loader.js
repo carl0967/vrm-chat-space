@@ -45,6 +45,28 @@ export async function fetchAnimationManifest(basePath) {
   return res.json();
 }
 
+// manifest.jsonのキャッシュ
+let manifestCache = null;
+let manifestBasePath = null;
+
+/**
+ * manifest.jsonからラベルに対応するファイル名を取得する。
+ * @param {string} label - 検索するラベル（例: "Walk", "Wave hand"）
+ * @param {string} basePath - VRMAファイルのベースパス
+ * @returns {Promise<string|null>} ファイル名、見つからない場合はnull
+ */
+export async function getAnimationFileByLabel(label, basePath) {
+  // manifestがキャッシュされていない、または別のパスの場合は読み込む
+  if (!manifestCache || manifestBasePath !== basePath) {
+    manifestCache = await fetchAnimationManifest(basePath);
+    manifestBasePath = basePath;
+  }
+
+  // ラベルに一致するエントリを検索
+  const entry = manifestCache.find(item => item.label === label);
+  return entry ? entry.file : null;
+}
+
 /**
  * 指定された VRM と manifest エントリに基づき AnimationClip を生成する。
  */

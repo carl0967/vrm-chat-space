@@ -1,5 +1,5 @@
 import {
-  IDLE_TEST_LOOP_FILES,
+  getIdleTestLoopFiles,
   calculateIdleSwitchDelay,
 } from "../idleAnimations.js";
 import { logMessage } from "../utils/logger.js";
@@ -12,7 +12,9 @@ export function createIdleLoopMenu({
   walkMenu,
   getAnimationClip,
   AnimationBlend,
+  vrmaBasePath,
 }) {
+  let IDLE_TEST_LOOP_FILES = null;
   const idleState = {
     active: false,
     idleSequenceIndex: 0,
@@ -23,7 +25,7 @@ export function createIdleLoopMenu({
 
 
   function nextIdleFile() {
-    if (!IDLE_TEST_LOOP_FILES.length) {
+    if (!IDLE_TEST_LOOP_FILES || !IDLE_TEST_LOOP_FILES.length) {
       return "";
     }
     const file = IDLE_TEST_LOOP_FILES[idleState.idleSequenceIndex];
@@ -38,6 +40,11 @@ export function createIdleLoopMenu({
     }
     idleState.idleRequestInFlight = true;
     try {
+      // manifest.jsonから待機アニメーションファイルを取得
+      if (!IDLE_TEST_LOOP_FILES) {
+        IDLE_TEST_LOOP_FILES = await getIdleTestLoopFiles(vrmaBasePath);
+      }
+
       const targetFile = nextIdleFile();
       if (!targetFile) {
         return;

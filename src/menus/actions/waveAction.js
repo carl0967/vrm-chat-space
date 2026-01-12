@@ -1,5 +1,6 @@
 import * as THREE from "three";
 import { logMessage } from "../../utils/logger.js";
+import { getAnimationFileByLabel } from "../../vrma/loader.js";
 
 /**
  * 手を振るアクション
@@ -11,8 +12,9 @@ export function createWaveAction({
   getAnimationClip,
   AnimationBlend,
   finishActionAndReturnToIdle,
+  vrmaBasePath,
 }) {
-  const WAVE_ANIMATION_FILE = "WaveHand.vrma";
+  let WAVE_ANIMATION_FILE = null;
 
   // 手を振るアクションの状態管理
   const state = {
@@ -36,9 +38,18 @@ export function createWaveAction({
 
     try {
       setActionStatus("手を振る準備中...");
+
+      // manifest.jsonから手を振るアニメーションファイルを取得
+      if (!WAVE_ANIMATION_FILE) {
+        WAVE_ANIMATION_FILE = await getAnimationFileByLabel("Wave hand", vrmaBasePath);
+        if (!WAVE_ANIMATION_FILE) {
+          throw new Error("manifest.jsonに'Wave hand'ラベルのアニメーションが見つかりません");
+        }
+      }
+
       const clip = await getAnimationClip(WAVE_ANIMATION_FILE);
       if (!clip) {
-        throw new Error("WaveHand.vrma が読み込めませんでした");
+        throw new Error("手を振るアニメーションが読み込めませんでした");
       }
 
       state.inProgress = true;

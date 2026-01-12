@@ -1,7 +1,6 @@
 [
   { "label": "Walk", "file": "motion003.vrma" },
   { "label": "Wave hand", "file": "WaveHand.vrma" },
-  { "label": "Idle 2", "file": "Idle_2.vrma" },
   { "label": "Idle2 long", "file": "Idle2.vrma" },
-  { "label": "Idle2 long alt", "file": "Idle2_2.vrma" },
+  { "label": "Idle2 long alt", "file": "Idle2_2.vrma" }
 ]

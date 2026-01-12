@@ -2,11 +2,14 @@
 import * as THREE from "three";
 
 import {
-  RANDOM_IDLE_FILES,
+  getRandomIdleFiles,
   calculateIdleSwitchDelay,
 } from "../idleAnimations.js";
 import { logMessage } from "../utils/logger.js";
-const RANDOM_WAVE_FILE = "WaveHand.vrma";
+import { getAnimationFileByLabel } from "../vrma/loader.js";
+
+let RANDOM_WAVE_FILE = null;
+let RANDOM_IDLE_FILES = null;
 const RANDOM_RANGE = { min: -3, max: 3 };
 const RANDOM_WAIT_SECONDS = 6;
 const RANDOM_WAVE_DELAY_RANGE = { min: 1.5, max: 4 };
@@ -20,6 +23,7 @@ export function createRandomMenu({
   walkMenu,
   getAnimationClip,
   AnimationBlend,
+  vrmaBasePath,
 }) {
   const randomState = {
     active: false,
@@ -53,7 +57,7 @@ export function createRandomMenu({
 
   // Idle 再生に使うファイル名を順番に取り出す（フェードの対象を切り替える）
   function nextIdleFile() {
-    if (!RANDOM_IDLE_FILES.length) {
+    if (!RANDOM_IDLE_FILES || !RANDOM_IDLE_FILES.length) {
       return "";
     }
     const file = RANDOM_IDLE_FILES[randomState.idleSequenceIndex];
@@ -68,6 +72,11 @@ export function createRandomMenu({
     }
     randomState.idleRequestInFlight = true;
     try {
+      // manifest.jsonから待機アニメーションファイルを取得
+      if (!RANDOM_IDLE_FILES) {
+        RANDOM_IDLE_FILES = await getRandomIdleFiles(vrmaBasePath);
+      }
+
       const idleFile = nextIdleFile();
       if (!idleFile) {
         return;
@@ -103,6 +112,14 @@ export function createRandomMenu({
 
   async function playRandomWave() {
     try {
+      // manifest.jsonから手を振るアニメーションファイルを取得
+      if (!RANDOM_WAVE_FILE) {
+        RANDOM_WAVE_FILE = await getAnimationFileByLabel("Wave hand", vrmaBasePath);
+        if (!RANDOM_WAVE_FILE) {
+          throw new Error("manifest.jsonに'Wave hand'ラベルのアニメーションが見つかりません");
+        }
+      }
+
       const clip = await getAnimationClip(RANDOM_WAVE_FILE);
       if (
         !clip ||
