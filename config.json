@@ -1,0 +1,11 @@
+{
+  "logging": {
+    "level": "Error",
+    "levels": [
+      "Verbose",
+      "Info",
+      "Warn",
+      "Error"
+    ]
+  }
+}

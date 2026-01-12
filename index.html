@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>VRM Chat Space - VRでも、PCやスマホでも。アバターと会話できる空間</title>
+
+  <!-- SEO Meta Tags -->
+  <meta name="description"
+    content="VRM Chat Space - VRでも、PCやスマホでも。アバターと会話できる空間。VRMモデルと音声やテキストで会話できるWebアプリケーション。WebXR対応でVRヘッドセット、PC、スマートフォンから利用可能。" />
+  <meta name="keywords" content="VRM,VRChat,アバター,会話,AI,WebXR,VR,Three.js,音声認識,VRMモデル,3D,チャット" />
+  <meta name="author" content="@carlvwxyz" />
+
+  <!-- Open Graph Protocol -->
+  <meta property="og:title" content="VRM Chat Space - VRでも、PCやスマホでも。アバターと会話できる空間" />
+  <meta property="og:description" content="VRMモデルと音声やテキストで会話できるWebアプリケーション。WebXR対応でVRヘッドセット、PC、スマートフォンから利用可能。" />
+  <meta property="og:type" content="website" />
+  <meta property="og:locale" content="ja_JP" />
+
+  <!-- Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:title" content="VRM Chat Space - VRでも、PCやスマホでも。アバターと会話できる空間" />
+  <meta name="twitter:description" content="VRMモデルと音声やテキストで会話できるWebアプリケーション。WebXR対応でVRヘッドセット、PC、スマートフォンから利用可能。" />
+  <meta name="twitter:creator" content="@carlvwxyz" />
+
+  <link rel="stylesheet" href="./styles/main.css" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.164.1/build/three.module.js"
+      }
+    }
+  </script>
+</head>
+
+<body>
+  <div class="app-meta">
+    <span class="app-name">VRM Chat Space</span>
+    <button type="button" class="app-version app-version-button" id="appVersionButton"
+      aria-label="更新履歴を表示">Ver. --</button>
+    <button type="button" id="settingsButton" class="settings-button"><i class="fas fa-gear"></i> 設定</button>
+    <button type="button" id="infoButton" class="info-button"><i class="fas fa-info-circle"></i> Info</button>
+  </div>
+  <div class="position-row shared-position hidden" id="positionDisplay">
+    <div>
+      現在位置:
+      <span id="currentPosition">x: --, y: --, z: --</span>
+    </div>
+    <div>
+      カメラ位置:
+      <span id="cameraPosition">x: --, y: --, z: --</span>
+    </div>
+  </div>
+  <div class="action-panel">
+    <label>
+      アクション
+      <select id="actionSelect">
+        <option value="">アクションを選択</option>
+        <!-- アクション項目はJavaScript (main.js) で動的に生成されます -->
+      </select>
+    </label>
+    <button type="button" id="actionExecuteButton">実行</button>
+    <span class="status" id="actionStatus"></span>
+    <div class="action-neck-angle-row hidden" id="actionNeckAngleRow">
+      <label for="neckAngleInput" class="action-neck-label">首を引く角度(-45〜45)</label>
+      <input type="text" id="neckAngleInput" class="action-neck-input" value="10" inputmode="text"
+        pattern="-?[0-9]*\.?[0-9]*" aria-label="首を引く角度(-45から45度)" />
+    </div>
+  </div>
+  <!-- 設定ポップアップ -->
+  <div class="settings-overlay hidden" id="settingsOverlay">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <h2>設定</h2>
+        <button type="button" class="close-button" id="closeSettingsButton">✕</button>
+      </div>
+      <div class="settings-content">
+        <div class="settings-section">
+          <h3>API設定</h3>
+          <label>
+            OpenAI APIキー(必須。音声認識・テキスト生成に使用)
+            <input type="password" id="apiKeyInput" placeholder="sk-..." />
+
+          </label>
+          <label>
+            Aivis Cloud APIキー(推奨。音声再生に使用。未入力の場合はOpen AIで代用)
+            <input type="password" id="aivisApiKeyInput" placeholder="Aivis API Key..." />
+
+          </label>
+          <label>
+            APIキーはsessionStorageで一時保存します。<br>画面更新では保持したままですが、タブ閉じたら消えます。サーバで保持はしません。
+          </label>
+        </div>
+        <div class="settings-section">
+          <h3>キャラクター設定</h3>
+          <button type="button" id="openCharacterSettingsButton">キャラクター設定を変更</button>
+          <button type="button" id="changeVrmModelButton">キャラクターモデルを変更(vrmファイル)</button>
+          <label>※モデルは保存しないため、ページリロードしたら元に戻ります。VRM1.0系推奨</label>
+          <input type="file" id="vrmFileInput" accept=".vrm" style="display: none;" />
+        </div>
+        <div>
+          <a href="https://openai.com/ja-JP/index/openai-api/">OpenAI APIキー取得</a>
+          <a href="https://api.aivis-project.com/v1/demo/realtime-streaming">Aivis Coud APIキー取得</a>
+        </div>
+        <br>
+        <div class="settings-section">
+          <h3>デバッグ設定</h3>
+          <label class="debug-control">
+
+            デバッグ表示
+          </label> <input type="checkbox" id="debugDisplayToggle" />
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Infoポップアップ -->
+  <div class="info-overlay hidden" id="infoOverlay">
+    <div class="info-modal">
+      <div class="info-header">
+        <h2>アプリ情報</h2>
+        <button type="button" class="close-button" id="closeInfoButton">✕</button>
+      </div>
+      <div class="info-content">
+        <div class="info-section">
+          <h3>「VRM Chat Space」について</h3>
+          <p>VRMモデルとVR空間で会話できるアプリです。<br>WebXRに対応しているデバイスの場合は、ENTER VRを押すとVR表示できます。<br>(未対応の場合はVR NOT SUPPORTEDと表示)
+          </p>
+          <br>VR使用中にマイクを止めても反応しない場合など、動きがおかしい場合は一度VRに入り直してみてください。
+        </div>
+        <div class="info-section">
+          <h3>操作方法</h3>
+          <p>アクションを実行することでVRMを操作することが可能です。</p>
+          <p>設定画面からAPIキーを設定すると、チャットが可能です。マイクボタンを押すと認識開始するので話してください。もう一度押すと認識終了します。</p>
+        </div>
+        <div class="info-section">
+          <h3>操作方法(Web)</h3>
+          <p>キーボードでカメラの位置を操作できます。(マウスでもある程度操作可)</p>
+          <ul>
+            <li><strong>W / A / S / D</strong>: 前後左右に移動</li>
+            <li><strong>R / F</strong>: 上下に移動</li>
+          </ul>
+        </div>
+        <div class="info-section">
+          <h3>クレジット</h3>
+          <p class="creator-info">
+            作成者: <a href="https://x.com/carlvwxyz" target="_blank" rel="noopener noreferrer">@carlvwxyz</a>
+          </p>
+          <p class="creator-info">
+            歩きモーション: <a href="https://tyt.fanbox.cc/posts/10123777" target="_blank" rel="noopener noreferrer">帝国妖異対策局
+              様</a>
+          </p>
+          <p class="creator-info">
+            VRMモデル: <a href="https://vroid.com/studio" target="_blank" rel="noopener noreferrer">VRoid Studio</a>
+          </p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- 更新履歴ポップアップ -->
+  <div class="history-overlay hidden" id="versionHistoryOverlay">
+    <div class="history-modal">
+      <div class="history-header">
+        <h2>更新履歴</h2>
+        <button type="button" class="close-button" id="closeVersionHistoryButton">✕</button>
+      </div>
+      <div class="history-content" id="versionHistoryContent">
+        <p>読み込み中...</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- キャラクター設定ポップアップ -->
+  <div class="settings-overlay hidden" id="characterSettingsOverlay">
+    <div class="settings-modal">
+      <div class="settings-header">
+        <h2>キャラクター設定</h2>
+        <button type="button" class="close-button" id="closeCharacterSettingsButton">✕</button>
+      </div>
+      <div class="settings-content">
+        <div class="settings-section">
+          <label>
+            AIキャラクター名
+            <input type="text" id="aiNameInput" placeholder="例: リリー" />
+          </label>
+          <label>
+            システムプロンプト
+            <textarea id="aiSystemPromptInput" rows="12"
+              style="width: 100%; padding: 0.5rem 0.7rem; border-radius: 0.5rem; border: 1px solid rgba(255, 255, 255, 0.15); background: rgba(255, 255, 255, 0.05); color: inherit; font-size: 0.9rem; font-family: inherit; resize: vertical;"></textarea>
+          </label>
+        </div>
+        <div class="settings-section">
+          <h3>OpenAI TTS設定</h3>
+          <label>
+            モデル
+            <input type="text" id="openaiTtsModelInput" placeholder="例: tts-1" />
+          </label>
+          <label>
+            声の種類
+            <input type="text" id="openaiTtsVoiceInput" placeholder="例: nova" />
+          </label>
+          <label>
+            再生速度 (0.25 〜 4.0)
+            <input type="number" id="openaiTtsSpeedInput" min="0.25" max="4.0" step="0.1" placeholder="例: 1.0" />
+          </label>
+        </div>
+        <div class="settings-section">
+          <h3>AIVIS TTS設定</h3>
+          <label>
+            モデルUUID
+            <input type="text" id="aivisTtsModelUuidInput" placeholder="例: a59cb814-0083-4369-8542-f51a29e72af7" />
+          </label>
+        </div>
+        <div class="settings-section">
+          <button type="button" id="saveCharacterSettingsButton">保存</button>
+          <button type="button" id="cancelCharacterSettingsButton">キャンセル</button>
+          <p style="margin-top: 1rem; font-size: 0.85rem; opacity: 0.8;">キャラクター設定はブラウザに保存します。</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Web画面下部のチャットパネル -->
+  <div class="bottom-chat-panel" id="bottomChatPanel">
+    <div class="bottom-chat-messages" id="bottomChatMessages"></div>
+    <div class="bottom-chat-input-area">
+      <input type="text" id="bottomChatTextInput" class="bottom-chat-input" placeholder="メッセージを入力..." />
+      <button type="button" id="bottomChatMicButton" class="bottom-chat-mic-button" disabled><i
+          class="fas fa-microphone"></i></button>
+      <button type="button" id="bottomChatSendButton" class="bottom-chat-send-button" disabled>送信</button>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+
+</html>
